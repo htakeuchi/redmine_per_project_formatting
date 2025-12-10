@@ -17,24 +17,46 @@ module RedminePerProjectFormatting
       )) +
       javascript_tag(
         <<-EOT
-          $(function() {
-            var checkbox = $("#project_wide_formatting");
-            var select = $("#project_modules_for_formatting");
-            checkbox.change(function() {
-              if (checkbox.is(":checked")) {
-                select.val("").parent().hide();
+          document.addEventListener("DOMContentLoaded", function() {
+            var checkbox = document.getElementById("project_wide_formatting");
+            var select = document.getElementById("project_modules_for_formatting");
+            var textFormatting = document.getElementById("project_text_formatting");
+
+            function toggleModules() {
+              if (checkbox.checked) {
+                for (var i = 0; i < select.options.length; i++) {
+                  select.options[i].selected = false;
+                }
+                select.parentNode.style.display = 'none';
               } else {
-                select.parent().show();
+                select.parentNode.style.display = 'block';
               }
+            }
+
+            checkbox.addEventListener("change", function() {
+              toggleModules();
             });
-            $("#project_text_formatting").change(function() {
-              if ($(this).val()) {
-                checkbox.change().parent().show();
+
+            function updateVisibility() {
+              if (textFormatting.value) {
+                checkbox.parentNode.style.display = 'block';
+                // We don't automatically trigger toggleModules here in the original code logic exactly? 
+                // Original: checkbox.change().parent().show(); 
+                // causing change event on checkbox -> which calls toggleModules. 
+                // So yes, we should ensure state is correct.
+                toggleModules();
               } else {
-                checkbox.parent().hide();
-                select.parent().hide();
-              } 
-            }).change();
+                checkbox.parentNode.style.display = 'none';
+                select.parentNode.style.display = 'none';
+              }
+            }
+
+            textFormatting.addEventListener("change", function() {
+              updateVisibility();
+            });
+
+            // Initialize
+            updateVisibility();
           });
         EOT
       )
